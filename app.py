@@ -20,6 +20,10 @@ def make_forecast(ticker, periods, hist='max'):
     
     return forecast
 
+
+  
+
+
 def getStockDataName(ticker):
     stock_data = yf.Ticker(ticker)
   
@@ -32,8 +36,12 @@ def getStockDataName(ticker):
      "summary" : d["longBusinessSummary"] if ( "longBusinessSummary" in d) else "",
      "logo" : d["logo_url"],
      "industry" : d["industry"]  if ("industry" in d) else "",
-
     }
+@app.route('/get-name', methods=["POST"])
+def getName():
+  request_data = request.get_json()
+  d=getStockDataName(request_data["ticker"])
+  return jsonify(d)
 def getStockData(ticker):
     stock_data = yf.Ticker(ticker)
     hist_data = stock_data.history("max", auto_adjust=True)
@@ -51,16 +59,30 @@ def getStockTimeData(ticker):
     l = []
     for row in hist_data.iloc[-10:].iterrows():
       print("\n")
-      print(row[1]["Open"])
+      print(row)
       print("\n")
       l.append({
         "open" : round(row[1]["Open"],2),
         "close" : round(row[1]["Close"],2),
         "high" : round(row[1]["High"],2),
         "low" : round(row[1]["Low"],2),
-        "date" : row[0]
-      })  
-    return l
+        "date" : row[0].strftime('%d/%m/%y'), 
+        
+      })
+    fin = {
+      "close": [],
+      "open": [],
+      "low": [],
+      "high": [],
+      "date" : []
+    }
+    for i in l:
+      fin["close"].append(i["close"])
+      fin["open"].append(i["open"])
+      fin["low"].append(i["low"])
+      fin["high"].append(i["high"])
+      fin["date"].append(i["date"])
+    return fin
 
 @app.route('/')
 def home():
